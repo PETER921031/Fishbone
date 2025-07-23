@@ -740,7 +740,7 @@ const getCheckboxStyle = (isSelected, color) => ({
             <strong>滑鼠移動到療程卡邊緣</strong>可以調整卡片大小，卡片會自動縮放提供視覺回饋
           </p>
           <p style={{ margin: '4px 0 0 0', color: '#059669' }}>
-            <strong>：</strong>卡片位置會自動儲存，重新載入頁面時會保持上次的位置
+            <strong>：</strong>卡片位置自動儲存，重新載入頁面時會保持上次的位置
           </p>
         </div>
       </div>
