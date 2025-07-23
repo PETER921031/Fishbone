@@ -4,10 +4,10 @@ import { Calendar, Stethoscope } from 'lucide-react';
 const FishboneTimeline = () => {
   // 固定的分支類型和對應的療程卡
   const branchTypes = {
-    diagnosis: { name: '🩺診斷分支', color: '#3b82f6', bgColor: '#eff6ff' },
-    treatment: { name: '🏥治療分支', color: '#dc2626', bgColor: '#fef2f2' },
-    recovery: { name: '❤️復原分支', color: '#ea580c', bgColor: '#fff7ed' },
-    tracking: { name: '📅追蹤分支', color: '#16a34a', bgColor: '#f0fdf4' }
+    diagnosis: { name: '診斷', color: '#3b82f6', bgColor: '#eff6ff' },
+    treatment: { name: '治療', color: '#dc2626', bgColor: '#fef2f2' },
+    recovery: { name: '復原', color: '#ea580c', bgColor: '#fff7ed' },
+    tracking: { name: '追蹤', color: '#16a34a', bgColor: '#f0fdf4' }
   };
 
   // 預設的療程卡資料
@@ -383,10 +383,10 @@ const getCheckboxStyle = (isSelected, color) => ({
 
   const getCardStyle = (branch) => {
   const gradientStyles = {
-    diagnosis: 'linear-gradient(to right, #fef2f2, #fecaca)',
-    treatment: 'linear-gradient(to right, #fdf2f8, #fbcfe8)',
-    recovery: 'linear-gradient(to right, #eff6ff, #bfdbfe)',
-    tracking: 'linear-gradient(to right, #faf5ff, #e9d5ff)'
+    diagnosis: 'linear-gradient(to right, #ffffffff, #ffdfdfff)',
+    treatment: 'linear-gradient(to right, #ffffffff, #fbf7cfff)',
+    recovery: 'linear-gradient(to right, #ffffffff, #dcecffff)',
+    tracking: 'linear-gradient(to right, #ffffffff, #eedffdff)'
   };
   
   const borderStyles = {
@@ -397,20 +397,18 @@ const getCheckboxStyle = (isSelected, color) => ({
   };
 
   return {
-    background: gradientStyles[branch.type] || gradientStyles.diagnosis,
-    border: borderStyles[branch.type] || borderStyles.diagnosis,
-    borderRadius: '8px',
-    padding: '16px',
-    boxShadow: hoveredCard === branch.id ? '0 15px 25px rgba(0, 0, 0, 0.15)' : '0 10px 15px rgba(0, 0, 0, 0.1)',
-    width: `${branch.width}px`,
-    height: `${branch.height}px`,
-    cursor: 'move',
-    userSelect: 'none',
-    transition: 'all 0.2s ease-out',
-    transform: `scale(${cardScales[branch.id] || 1})`,
-    transformOrigin: 'center',
-    overflow: 'hidden'
-  };
+  background: gradientStyles[branch.type] || gradientStyles.diagnosis,
+  border: borderStyles[branch.type] || borderStyles.diagnosis,
+  borderRadius: '8px',
+  padding: '16px',
+  boxShadow: '0 10px 15px rgba(0, 0, 0, 0.1)',
+  width: `${branch.width}px`,
+  height: `${branch.height}px`,
+  cursor: 'default',
+  userSelect: 'none',
+  transition: 'all 0.2s ease-out',
+  overflow: 'hidden'
+};
 };
 
   const containerStyle = {
@@ -533,43 +531,42 @@ const getCheckboxStyle = (isSelected, color) => ({
             </defs>
 
             {/* Branch Lines */}
-            {branches.map(branch => {
-              const mainY = 50;
-              const branchY = branch.isCollapsed ? 50 : 50 + branch.verticalOffset;
-              const branchX = branch.position;
-              const branchColor = branchTypes[branch.type]?.color || '#6B7280';
-              
-              return (
-                <g key={branch.id}>
-                  {/* 連接線 */}
-                  {!branch.isCollapsed && (
-                    <line
-                      x1={`${branchX}%`}
-                      y1={`${mainY}%`}
-                      x2={`${branchX}%`}
-                      y2={`${branchY}%`}
-                      stroke={branchColor}
-                      strokeWidth="2"
-                    />
-                  )}
-                  
-                  {/* Branch endpoint circle */}
-                  <circle
-                    cx={`${branchX}%`}
-                    cy={`${branchY}%`}
-                    r={branch.isCollapsed ? "12" : "6"}
-                    fill={branch.isCollapsed ? '#ffffff' : branchColor}
-                    stroke={branchColor}
-                    strokeWidth="2"
-                    style={{ 
-                      cursor: branch.isCollapsed ? (isLongPressing && draggedBranch === branch.id ? 'move' : 'pointer') : 'default',
-                      opacity: draggedBranch === branch.id ? 0.7 : 1
-                    }}
-                    onMouseDown={(e) => branch.isCollapsed && startLongPress(e, branch)}
-                    onMouseUp={clearLongPress}
-                    onMouseMove={handleMouseMoveOnNode}
-                    onClick={(e) => branch.isCollapsed && handleNodeClick(e, branch)}
-                  />
+{branches.map(branch => {
+  const mainY = 50;
+  const branchY = branch.isCollapsed ? 50 : 50 + branch.verticalOffset;
+  const branchX = branch.position;
+  
+  return (
+    <g key={branch.id}>
+      {/* 連接線 */}
+      {!branch.isCollapsed && (
+        <line
+          x1={`${branchX}%`}
+          y1={`${mainY}%`}
+          x2={`${branchX}%`}
+          y2={`${branchY}%`}
+          stroke="#9ca3af"
+          strokeWidth="2"
+        />
+      )}
+      
+      {/* Branch endpoint circle */}
+      <circle
+        cx={`${branchX}%`}
+        cy={`${branchY}%`}
+        r={branch.isCollapsed ? "12" : "6"}
+        fill={branch.isCollapsed ? '#ffffff' : '#9ca3af'}
+        stroke="#9ca3af"
+        strokeWidth="2"
+        style={{ 
+          cursor: branch.isCollapsed ? (isLongPressing && draggedBranch === branch.id ? 'move' : 'pointer') : 'default',
+          opacity: draggedBranch === branch.id ? 0.7 : 1
+        }}
+        onMouseDown={(e) => branch.isCollapsed && startLongPress(e, branch)}
+        onMouseUp={clearLongPress}
+        onMouseMove={handleMouseMoveOnNode}
+        onClick={(e) => branch.isCollapsed && handleNodeClick(e, branch)}
+      />
                   
                   {/* 收起狀態下的標題文字 */}
                   {branch.isCollapsed && (
@@ -626,23 +623,18 @@ const getCheckboxStyle = (isSelected, color) => ({
           </div>
 
           {/* Branch Content Cards */}
-          {branches.filter(branch => !branch.isCollapsed).map(branch => (
-            <div
-              key={branch.id}
-              style={{
-                position: 'absolute',
-                left: `${branch.position}%`,
-                top: `${50 + branch.verticalOffset}%`,
-                transform: 'translateX(-50%) translateY(-50%)',
-                zIndex: 3,
-                ...getCardStyle(branch),
-                opacity: draggedBranch === branch.id ? 0.7 : 1
-              }}
-              onMouseDown={(e) => startLongPress(e, branch)}
-              onMouseUp={clearLongPress}
-              onMouseMove={(e) => handleCardMouseMove(e, branch)}
-              onMouseLeave={() => handleCardMouseLeave(branch)}
-            >
+{branches.filter(branch => !branch.isCollapsed).map(branch => (
+  <div
+    key={branch.id}
+    style={{
+      position: 'absolute',
+      left: `${branch.position}%`,
+      top: `${50 + branch.verticalOffset}%`,
+      transform: 'translateX(-50%) translateY(-50%)',
+      zIndex: 3,
+      ...getCardStyle(branch)
+    }}
+  >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div 
@@ -748,7 +740,7 @@ const getCheckboxStyle = (isSelected, color) => ({
             <strong>滑鼠移動到療程卡邊緣</strong>可以調整卡片大小，卡片會自動縮放提供視覺回饋
           </p>
           <p style={{ margin: '4px 0 0 0', color: '#059669' }}>
-            <strong>✨ 新功能：</strong>卡片位置會自動儲存，重新載入頁面時會保持上次的位置
+            <strong>：</strong>卡片位置會自動儲存，重新載入頁面時會保持上次的位置
           </p>
         </div>
       </div>
@@ -757,4 +749,3 @@ const getCheckboxStyle = (isSelected, color) => ({
 };
 
 export default FishboneTimeline;
-
