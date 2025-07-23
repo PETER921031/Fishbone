@@ -4,10 +4,10 @@ import { Calendar, Stethoscope } from 'lucide-react';
 const FishboneTimeline = () => {
   // 固定的分支類型和對應的療程卡
   const branchTypes = {
-    diagnosis: { name: '🩺診斷分支', color: '#3b82f6', bgColor: '#eff6ff' },
-    treatment: { name: '🏥治療分支', color: '#dc2626', bgColor: '#fef2f2' },
-    recovery: { name: '❤️復原分支', color: '#ea580c', bgColor: '#fff7ed' },
-    tracking: { name: '📅追蹤分支', color: '#16a34a', bgColor: '#f0fdf4' }
+    diagnosis: { name: '診斷', color: '#3b82f6', bgColor: '#eff6ff' },
+    treatment: { name: '治療', color: '#dc2626', bgColor: '#fef2f2' },
+    recovery: { name: '復原', color: '#ea580c', bgColor: '#fff7ed' },
+    tracking: { name: '追蹤', color: '#16a34a', bgColor: '#f0fdf4' }
   };
 
   // 預設的療程卡資料
@@ -66,13 +66,7 @@ const savePositions = (branchesData) => {
 
 
   const [branches, setBranches] = useState(loadSavedPositions);
-  const [activeBranch, setActiveBranch] = useState(null);
-  const [patientsData, setPatientsData] = useState([]);
-  const [selectedPatient, setSelectedPatient] = useState(null);
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [jsonData, setJsonData] = useState(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const fileInputRef = useRef(null);
+  const [activeBranch, setActiveBranch] = useState(null); // 當前選中的分支類型
   const [draggedBranch, setDraggedBranch] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -82,6 +76,7 @@ const savePositions = (branchesData) => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [cardScales, setCardScales] = useState({});
   const containerRef = useRef(null);
+  const [selectedBranches, setSelectedBranches] = useState(new Set(Object.keys(branchTypes)));
 
   // 監聽 branches 變化並自動儲存
   useEffect(() => {
@@ -94,109 +89,39 @@ const savePositions = (branchesData) => {
       branch.id === id ? { ...branch, [field]: value } : branch
     ));
   };
-  // 處理檔案匯入
-const handleFileImport = async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  setIsImporting(true);
-  try {
-    const text = await file.text();
-    const data = JSON.parse(text);
-    setJsonData(data);
-    updateBranchesFromJson(data);
-  } catch (error) {
-    alert('JSON檔案格式錯誤');
-  } finally {
-    setIsImporting(false);
-  }
-};
 
-// 從JSON更新branches
-const updateBranchesFromJson = (data) => {
-  if (!data.patients || !Array.isArray(data.patients)) {
-    alert('JSON格式錯誤：找不到patients陣列');
-    return;
-  }
-  
-  setPatientsData(data.patients);
-  
-  if (data.patients.length > 0) {
-    const firstPatient = data.patients[0];
-    setSelectedPatient(firstPatient);
-    
-    if (firstPatient.medicalRecords && firstPatient.medicalRecords.length > 0) {
-      setSelectedRecord(firstPatient.medicalRecords[0]);
-      mapRecordToBranches(firstPatient.medicalRecords[0], firstPatient);
-    }
-  }
-};
-
-// 映射記錄到branches
-const mapRecordToBranches = (record, patient) => {
-  const updatedBranches = branches.map(branch => {
-    let newTitle = branch.title;
-    let newDescription = branch.description;
-    
-    switch(branch.type) {
-      case 'diagnosis':
-        if (branch.id === 1) {
-          newTitle = record.visitType || '門診';
-          newDescription = `診斷：${record.diagnosis || '待填入'}\n主訴：${record.chiefComplaint || '待填入'}`;
-        } else if (branch.id === 2) {
-          newTitle = '急診';
-          newDescription = record.emergencyInfo || '急診檢查紀錄';
-        }
-        break;
-        
-      case 'treatment':
-        if (branch.id === 3) {
-          newTitle = '藥物治療';
-          const medications = record.medications || [];
-          newDescription = medications.length > 0 
-            ? medications.map(med => `${med.name || med} ${med.dosage || ''}`).join('\n')
-            : '待填入用藥資訊';
-        } else if (branch.id === 4) {
-          newTitle = '住院記錄';
-          newDescription = record.hospitalizationInfo || '紀錄住院情況及檢查種類';
-        }
-        break;
-        
-      case 'recovery':
-        if (branch.id === 6) {
-          newTitle = '復原評估';
-          newDescription = record.recoveryAssessment || record.followUpPlan || '評估治療效果與復原狀況';
-        }
-        break;
-        
-      case 'tracking':
-        if (branch.id === 8) {
-          newTitle = '回診追蹤';
-          newDescription = `下次回診：${record.nextAppointment || '待安排'}`;
-        }
-        break;
-    }
-    
-    return { ...branch, title: newTitle, description: newDescription };
-  });
-  
-  setBranches(updatedBranches);
-};
   // 處理分支按鈕點擊
   const handleBranchClick = (branchType) => {
-    if (activeBranch === branchType) {
-      // 如果點擊的是當前激活的分支，則顯示所有卡片
-      setActiveBranch(null);
-      setBranches(branches.map(branch => ({ ...branch, isCollapsed: false })));
-    } else {
-      // 點擊新的分支，收起其他分支的卡片
-      setActiveBranch(branchType);
-      setBranches(branches.map(branch => ({
-        ...branch,
-        isCollapsed: branch.type !== branchType
-      })));
-    }
-  };
+  const newSelected = new Set(selectedBranches);
+  if (newSelected.has(branchType)) {
+    newSelected.delete(branchType);
+  } else {
+    newSelected.add(branchType);
+  }
+  setSelectedBranches(newSelected);
+  
+  // 更新分支顯示狀態
+  setBranches(branches.map(branch => ({
+    ...branch,
+    isCollapsed: !newSelected.has(branch.type)
+  })));
+};
+
+// 新增全選功能
+const handleSelectAll = () => {
+  const allBranchTypes = Object.keys(branchTypes);
+  const isAllSelected = allBranchTypes.every(type => selectedBranches.has(type));
+  
+  if (isAllSelected) {
+    // 如果全選，則取消全選
+    setSelectedBranches(new Set());
+    setBranches(branches.map(branch => ({ ...branch, isCollapsed: true })));
+  } else {
+    // 否則全選
+    setSelectedBranches(new Set(allBranchTypes));
+    setBranches(branches.map(branch => ({ ...branch, isCollapsed: false })));
+  }
+};
 
   // 檢查滑鼠是否在卡片邊緣
   const getEdgeType = (e, cardRef) => {
@@ -409,26 +334,71 @@ const mapRecordToBranches = (record, patient) => {
     };
   }, [longPressTimer]);
 
-  const getButtonStyle = (type) => ({
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '12px 24px',
-    borderRadius: '8px',
-    border: 'none',
-    fontSize: '16px',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    backgroundColor: activeBranch === type ? branchTypes[type].color : branchTypes[type].color,
-    color: 'white',
-    transform: activeBranch === type ? 'scale(1.05)' : 'scale(1)',
-    opacity: activeBranch === type ? 1 : 0.8
-  });
+  const getButtonStyle = (type, isSelected) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '12px',
+  padding: '12px 20px',
+  borderRadius: '8px',
+  border: isSelected ? `2px solid ${branchTypes[type].color}` : '2px solid #e5e7eb',
+  fontSize: '16px',
+  fontWeight: '500',
+  cursor: 'pointer',
+  transition: 'all 0.2s',
+  backgroundColor: isSelected ? branchTypes[type].bgColor : '#ffffff',
+  color: isSelected ? branchTypes[type].color : '#6b7280',
+  boxShadow: isSelected ? '0 4px 12px rgba(0, 0, 0, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)'
+});
 
-  const getCardStyle = (branch) => ({
-    border: 'none',
+// 全選按鈕樣式
+const getSelectAllStyle = (isAllSelected) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '12px',
+  padding: '12px 20px',
+  borderRadius: '8px',
+  border: isAllSelected ? '2px solid #3b82f6' : '2px solid #e5e7eb',
+  fontSize: '16px',
+  fontWeight: '600',
+  cursor: 'pointer',
+  transition: 'all 0.2s',
+  backgroundColor: isAllSelected ? '#eff6ff' : '#ffffff',
+  color: isAllSelected ? '#3b82f6' : '#6b7280',
+  boxShadow: isAllSelected ? '0 4px 12px rgba(59, 130, 246, 0.15)' : '0 2px 4px rgba(0, 0, 0, 0.05)',
+  marginRight: '8px'
+});
+
+// 勾選框樣式
+const getCheckboxStyle = (isSelected, color) => ({
+  width: '20px',
+  height: '20px',
+  borderRadius: '4px',
+  border: isSelected ? `2px solid ${color}` : '2px solid #d1d5db',
+  backgroundColor: isSelected ? color : '#ffffff',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.2s'
+});
+
+  const getCardStyle = (branch) => {
+  const gradientStyles = {
+    diagnosis: 'linear-gradient(to right, #ffffffff, #ffdfdfff)',
+    treatment: 'linear-gradient(to right, #ffffffff, #fbf7cfff)',
+    recovery: 'linear-gradient(to right, #ffffffff, #dcecffff)',
+    tracking: 'linear-gradient(to right, #ffffffff, #eedffdff)'
+  };
+  
+  const borderStyles = {
+    diagnosis: '1px solid #fecaca',
+    treatment: '1px solid #fbcfe8',
+    recovery: '1px solid #bfdbfe',
+    tracking: '1px solid #e9d5ff'
+  };
+
+  return {
+    background: gradientStyles[branch.type] || gradientStyles.diagnosis,
+    border: borderStyles[branch.type] || borderStyles.diagnosis,
     borderRadius: '8px',
     padding: '16px',
     boxShadow: hoveredCard === branch.id ? '0 15px 25px rgba(0, 0, 0, 0.15)' : '0 10px 15px rgba(0, 0, 0, 0.1)',
@@ -437,11 +407,11 @@ const mapRecordToBranches = (record, patient) => {
     cursor: 'move',
     userSelect: 'none',
     transition: 'all 0.2s ease-out',
-    backgroundColor: branchTypes[branch.type]?.bgColor || '#ffffff',
     transform: `scale(${cardScales[branch.id] || 1})`,
     transformOrigin: 'center',
     overflow: 'hidden'
-  });
+  };
+};
 
   const containerStyle = {
     width: '100%',
@@ -493,112 +463,43 @@ const mapRecordToBranches = (record, patient) => {
         </div>
 
         {/* Branch Filter Buttons */}
-        {/* File Import Button */}
-<div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-  <input
-    type="file"
-    accept=".json"
-    onChange={handleFileImport}
-    ref={fileInputRef}
-    style={{ display: 'none' }}
-  />
+<div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '32px', flexWrap: 'wrap', alignItems: 'center' }}>
+  {/* 全選按鈕 */}
   <button
-    onClick={() => fileInputRef.current?.click()}
-    disabled={isImporting}
-    style={{
-      padding: '12px 24px',
-      backgroundColor: '#059669',
-      color: 'white',
-      border: 'none',
-      borderRadius: '8px',
-      cursor: isImporting ? 'not-allowed' : 'pointer',
-      fontSize: '14px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-    }}
+    onClick={handleSelectAll}
+    style={getSelectAllStyle(selectedBranches.size === Object.keys(branchTypes).length)}
   >
-    {isImporting ? '匯入中...' : '📁 匯入病歷JSON'}
+    <div style={getCheckboxStyle(selectedBranches.size === Object.keys(branchTypes).length, '#3b82f6')}>
+      {selectedBranches.size === Object.keys(branchTypes).length && (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+    </div>
+    <span>{selectedBranches.size} selected</span>
   </button>
-</div>
 
-{/* Patient Selection */}
-{patientsData.length > 0 && (
-  <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
-    <select
-      value={selectedPatient?.patientId || ''}
-      onChange={(e) => {
-        const patient = patientsData.find(p => p.patientId === e.target.value);
-        setSelectedPatient(patient);
-        if (patient?.medicalRecords?.[0]) {
-          setSelectedRecord(patient.medicalRecords[0]);
-          mapRecordToBranches(patient.medicalRecords[0], patient);
-        }
-      }}
-      style={{ 
-        padding: '8px 12px', 
-        borderRadius: '6px', 
-        border: '1px solid #d1d5db',
-        fontSize: '14px'
-      }}
-    >
-      {patientsData.map(patient => (
-        <option key={patient.patientId} value={patient.patientId}>
-          {patient.patientName} ({patient.patientId})
-        </option>
-      ))}
-    </select>
-    
-    {selectedPatient?.medicalRecords && (
-      <select
-        value={selectedRecord?.recordId || selectedPatient.medicalRecords.indexOf(selectedRecord)}
-        onChange={(e) => {
-          const record = selectedPatient.medicalRecords.find(r => 
-            r.recordId === e.target.value || 
-            selectedPatient.medicalRecords.indexOf(r) === parseInt(e.target.value)
-          );
-          setSelectedRecord(record);
-          if (record) mapRecordToBranches(record, selectedPatient);
-        }}
-        style={{ 
-          padding: '8px 12px', 
-          borderRadius: '6px', 
-          border: '1px solid #d1d5db',
-          fontSize: '14px'
-        }}
+  {/* 分支按鈕 */}
+  {Object.entries(branchTypes).map(([type, config]) => {
+    const isSelected = selectedBranches.has(type);
+    return (
+      <button
+        key={type}
+        onClick={() => handleBranchClick(type)}
+        style={getButtonStyle(type, isSelected)}
       >
-        {selectedPatient.medicalRecords.map((record, index) => (
-          <option key={record.recordId || index} value={record.recordId || index}>
-            {record.visitDate || `記錄 ${index + 1}`}
-          </option>
-        ))}
-      </select>
-    )}
-  </div>
-)}
-
-{/* Branch Filter Buttons */}
-<div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '32px', flexWrap: 'wrap' }}>
-          {Object.entries(branchTypes).map(([type, config]) => (
-            <button
-              key={type}
-              onClick={() => handleBranchClick(type)}
-              style={getButtonStyle(type)}
-              onMouseEnter={(e) => {
-                if (activeBranch !== type) {
-                  e.target.style.opacity = '1';
-                  e.target.style.transform = 'scale(1.02)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeBranch !== type) {
-                  e.target.style.opacity = '0.8';
-                  e.target.style.transform = 'scale(1)';
-                }
-              }}
-            >
-              {config.name}
-            </button> 
-          ))}
+        <div style={getCheckboxStyle(isSelected, config.color)}>
+          {isSelected && (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
         </div>
+        <span>{config.name}</span>
+      </button>
+    );
+  })}
+</div>
 
         {/* Main Fishbone Container */}
         <div style={fishboneContainerStyle} ref={containerRef}>
@@ -856,4 +757,3 @@ const mapRecordToBranches = (record, patient) => {
 };
 
 export default FishboneTimeline;
-
