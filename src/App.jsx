@@ -77,6 +77,7 @@ const savePositions = (branchesData) => {
   const [cardScales, setCardScales] = useState({});
   const containerRef = useRef(null);
   const [selectedBranches, setSelectedBranches] = useState(new Set(Object.keys(branchTypes)));
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // 監聽 branches 變化並自動儲存
   useEffect(() => {
@@ -333,6 +334,19 @@ const handleSelectAll = () => {
       }
     };
   }, [longPressTimer]);
+  // 點擊外部關閉下拉選單
+React.useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (containerRef.current && !event.target.closest('[data-dropdown]')) {
+      setIsDropdownOpen(false);
+    }
+  };
+
+  if (isDropdownOpen) {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }
+}, [isDropdownOpen]);
 
   const getButtonStyle = (type, isSelected) => ({
   display: 'inline-flex',
@@ -457,50 +471,134 @@ const getCheckboxStyle = (isSelected, color) => ({
               病患療程魚骨圖
             </h1>
           </div>
-          <p style={{ color: '#6b7280', margin: 0 }}>魚骨圖式療程追蹤系統 - 點擊分支按鈕篩選療程卡 (位置自動儲存)</p>
+          <p style={{ color: '#6b7280', margin: 0 }}>魚骨圖式療程追蹤系統 - 點擊分支按鈕篩選療程卡 </p>
         </div>
 
-        {/* Branch Filter Buttons */}
-<div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginBottom: '32px', flexWrap: 'wrap', alignItems: 'center' }}>
-  {/* 全選按鈕 */}
-  <button
-    onClick={handleSelectAll}
-    style={getSelectAllStyle(selectedBranches.size === Object.keys(branchTypes).length)}
-  >
-    <div style={getCheckboxStyle(selectedBranches.size === Object.keys(branchTypes).length, '#3b82f6')}>
-      {selectedBranches.size === Object.keys(branchTypes).length && (
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      )}
-    </div>
-    <span>{selectedBranches.size} selected</span>
-  </button>
-
-  {/* 分支按鈕 */}
-  {Object.entries(branchTypes).map(([type, config]) => {
-    const isSelected = selectedBranches.has(type);
-    return (
-      <button
-        key={type}
-        onClick={() => handleBranchClick(type)}
-        style={getButtonStyle(type, isSelected)}
-      >
-        <div style={getCheckboxStyle(isSelected, config.color)}>
-          {isSelected && (
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          )}
-        </div>
-        <span>{config.name}</span>
-      </button>
-    );
-  })}
-</div>
+        
 
         {/* Main Fishbone Container */}
-        <div style={fishboneContainerStyle} ref={containerRef}>
+<div style={fishboneContainerStyle} ref={containerRef}>
+  {/* 下拉式篩選器 */}
+  <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10 }}>
+    <div style={{ position: 'relative' }} data-dropdown>
+      <button
+        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '12px 16px',
+          backgroundColor: '#ffffff',
+          border: '1px solid #d1d5db',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: '500',
+          color: '#374151',
+          cursor: 'pointer',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          minWidth: '160px',
+          justifyContent: 'space-between'
+        }}
+      >
+        <span>療程追蹤篩選</span>
+        <svg 
+          width="16" 
+          height="16" 
+          viewBox="0 0 16 16" 
+          fill="none"
+          style={{ 
+            transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s'
+          }}
+        >
+          <path d="M4 6L8 10L12 6" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      
+      {isDropdownOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          backgroundColor: '#ffffff',
+          border: '1px solid #d1d5db',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          marginTop: '4px',
+          padding: '8px',
+          zIndex: 20
+        }}>
+          {/* 全選選項 */}
+          <div
+            onClick={handleSelectAll}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151',
+              backgroundColor: 'transparent',
+              transition: 'background-color 0.15s'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+          >
+            <div style={getCheckboxStyle(selectedBranches.size === Object.keys(branchTypes).length, '#3b82f6')}>
+              {selectedBranches.size === Object.keys(branchTypes).length && (
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </div>
+            <span>Select All</span>
+          </div>
+          
+          {/* 分隔線 */}
+          <div style={{ height: '1px', backgroundColor: '#e5e7eb', margin: '8px 0' }}></div>
+          
+          {/* 各分支選項 */}
+          {Object.entries(branchTypes).map(([type, config]) => {
+            const isSelected = selectedBranches.has(type);
+            return (
+              <div
+                key={type}
+                onClick={() => handleBranchClick(type)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  color: '#374151',
+                  backgroundColor: 'transparent',
+                  transition: 'background-color 0.15s'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+              >
+                <div style={getCheckboxStyle(isSelected, config.color)}>
+                  {isSelected && (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
+                <span>{config.name}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </div>
+ 
           <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1 }}>
             {/* Main Axis Line */}
             <line
@@ -732,15 +830,15 @@ const getCheckboxStyle = (isSelected, color) => ({
 
         {/* Instructions */}
         <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '14px', color: '#6b7280' }}>
-          <p style={{ margin: 0 }}>點擊上方分支按鈕來篩選顯示對應的療程卡</p>
+          <p style={{ margin: 0 }}>點擊療程追蹤篩選</p>
           <p style={{ margin: '4px 0 0 0' }}>
-            <strong>單次點擊</strong>收起的節點可展開療程卡，<strong>長按</strong>節點或療程卡可開始拖拽移動
+            <strong></strong>
           </p>
           <p style={{ margin: '4px 0 0 0' }}>
             <strong>滑鼠移動到療程卡邊緣</strong>可以調整卡片大小，卡片會自動縮放提供視覺回饋
           </p>
           <p style={{ margin: '4px 0 0 0', color: '#059669' }}>
-            <strong>：</strong>卡片位置自動儲存，重新載入頁面時會保持上次的位置
+            <strong></strong>
           </p>
         </div>
       </div>
