@@ -9,26 +9,174 @@ const FishboneTimeline = () => {
     recovery: { name: '復原', color: '#ea580c', bgColor: '#fff7ed' },
     tracking: { name: '追蹤', color: '#16a34a', bgColor: '#f0fdf4' }
   };
+  // 醫療標籤系統
+const medicalTags = {
+  urgency: {
+    name: '緊急程度',
+    options: [
+      { id: 'urgent', label: '緊急', color: '#dc2626', bgColor: '#fef2f2' },
+      { id: 'normal', label: '一般', color: '#059669', bgColor: '#f0fdf4' },
+      { id: 'routine', label: '例行', color: '#6b7280', bgColor: '#f9fafb' }
+    ]
+  },
+  status: {
+    name: '執行狀態',
+    options: [
+      { id: 'completed', label: '已完成', color: '#059669', bgColor: '#f0fdf4' },
+      { id: 'inProgress', label: '進行中', color: '#d97706', bgColor: '#fffbeb' },
+      { id: 'pending', label: '待執行', color: '#dc2626', bgColor: '#fef2f2' },
+      { id: 'cancelled', label: '已取消', color: '#6b7280', bgColor: '#f9fafb' }
+    ]
+  },
+  department: {
+    name: '科別',
+    options: [
+      { id: 'internal', label: '內科', color: '#3b82f6', bgColor: '#eff6ff' },
+      { id: 'surgery', label: '外科', color: '#dc2626', bgColor: '#fef2f2' },
+      { id: 'emergency', label: '急診', color: '#ea580c', bgColor: '#fff7ed' },
+      { id: 'icu', label: 'ICU', color: '#7c3aed', bgColor: '#faf5ff' },
+      { id: 'rehab', label: '復健科', color: '#059669', bgColor: '#f0fdf4' }
+    ]
+  },
+  followUp: {
+    name: '追蹤頻率',
+    options: [
+      { id: 'daily', label: '每日', color: '#dc2626', bgColor: '#fef2f2' },
+      { id: 'weekly', label: '每週', color: '#d97706', bgColor: '#fffbeb' },
+      { id: 'monthly', label: '每月', color: '#059669', bgColor: '#f0fdf4' },
+      { id: 'asNeeded', label: '需要時', color: '#6b7280', bgColor: '#f9fafb' }
+    ]
+  }
+};
 
   // 預設的療程卡資料
-  const initialBranches = [
-    // 診斷分支
-    { id: 1, type: 'diagnosis', side: 'top', position: 20, verticalOffset: -20, title: '門診', description: '病患就診，進行基本檢查', width: 192, height: 150 },
-    { id: 2, type: 'diagnosis', side: 'top', position: 35, verticalOffset: -25, title: '急診', description: '急診檢查紀錄', width: 192, height: 150 },
-    
-    // 治療分支
-    { id: 3, type: 'treatment', side: 'bottom', position: 45, verticalOffset: 20, title: '藥物、物理治療', description: '紀錄治療計畫', width: 192, height: 150 },
-    { id: 4, type: 'treatment', side: 'bottom', position: 60, verticalOffset: 25, title: '住院天數', description: '紀錄住院情況及檢查種類', width: 192, height: 150 },
-    { id: 5, type: 'treatment', side: 'bottom', position: 65, verticalOffset: 30, title: '手術執行', description: '手術方式、摘要', width: 192, height: 150 },
-    
-    // 復原分支
-    { id: 6, type: 'recovery', side: 'top', position: 70, verticalOffset: -20, title: '復原評估', description: '評估治療效果與復原狀況', width: 192, height: 150 },
-    { id: 7, type: 'recovery', side: 'top', position: 80, verticalOffset: -25, title: '康復訓練', description: '進行康復訓練計畫', width: 192, height: 150 },
-    
-    // 追蹤分支
-    { id: 8, type: 'tracking', side: 'bottom', position: 85, verticalOffset: 20, title: '定期回診', description: '定期回診追蹤檢查', width: 192, height: 150 },
-    { id: 9, type: 'tracking', side: 'bottom', position: 90, verticalOffset: 25, title: '長期追蹤', description: '長期健康狀況追蹤', width: 192, height: 150 }
-  ];
+  // 預設的療程卡資料（添加標籤）
+const initialBranches = [
+  // 診斷分支
+  { 
+    id: 1, 
+    type: 'diagnosis', 
+    side: 'top', 
+    position: 20, 
+    verticalOffset: -20, 
+    title: '門診', 
+    description: '病患就診，進行基本檢查', 
+    width: 192, 
+    height: 180,
+    tags: { urgency: 'normal', status: 'completed', department: 'internal' }
+  },
+  { 
+    id: 2, 
+    type: 'diagnosis', 
+    side: 'top', 
+    position: 35, 
+    verticalOffset: -25, 
+    title: '急診', 
+    description: '急診檢查紀錄', 
+    width: 192, 
+    height: 180,
+    tags: { urgency: 'urgent', status: 'completed', department: 'emergency' }
+  },
+  
+  // 治療分支
+  { 
+    id: 3, 
+    type: 'treatment', 
+    side: 'bottom', 
+    position: 45, 
+    verticalOffset: 20, 
+    title: '藥物、物理治療', 
+    description: '紀錄治療計畫', 
+    width: 192, 
+    height: 180,
+    tags: { urgency: 'normal', status: 'inProgress', department: 'rehab' }
+  },
+  { 
+    id: 4, 
+    type: 'treatment', 
+    side: 'bottom', 
+    position: 60, 
+    verticalOffset: 25, 
+    title: '住院天數', 
+    description: '紀錄住院情況及檢查種類', 
+    width: 192, 
+    height: 180,
+    tags: { urgency: 'normal', status: 'completed', department: 'internal' }
+  },
+  { 
+    id: 5, 
+    type: 'treatment', 
+    side: 'bottom', 
+    position: 65, 
+    verticalOffset: 30, 
+    title: '手術執行', 
+    description: '手術方式、摘要', 
+    width: 192, 
+    height: 180,
+    tags: { urgency: 'urgent', status: 'completed', department: 'surgery' }
+  },
+  
+  // 復原分支
+  { 
+    id: 6, 
+    type: 'recovery', 
+    side: 'top', 
+    position: 70, 
+    verticalOffset: -20, 
+    title: '復原評估', 
+    description: '評估治療效果與復原狀況', 
+    width: 192, 
+    height: 180,
+    tags: { urgency: 'normal', status: 'inProgress', department: 'rehab', followUp: 'weekly' }
+  },
+  { 
+    id: 7, 
+    type: 'recovery', 
+    side: 'top', 
+    position: 80, 
+    verticalOffset: -25, 
+    title: '康復訓練', 
+    description: '進行康復訓練計畫', 
+    width: 192, 
+    height: 180,
+    tags: { urgency: 'normal', status: 'inProgress', department: 'rehab', followUp: 'daily' }
+  },
+  
+  // 追蹤分支
+  { 
+    id: 8, 
+    type: 'tracking', 
+    side: 'bottom', 
+    position: 85, 
+    verticalOffset: 20, 
+    title: '定期回診', 
+    description: '定期回診追蹤檢查', 
+    width: 192, 
+    height: 180,
+    tags: { urgency: 'routine', status: 'pending', department: 'internal', followUp: 'monthly' }
+  },
+  { 
+    id: 9, 
+    type: 'tracking', 
+    side: 'bottom', 
+    position: 90, 
+    verticalOffset: 25, 
+    title: '長期追蹤', 
+    description: '長期健康狀況追蹤', 
+    width: 192, 
+    height: 180,
+    tags: { urgency: 'routine', status: 'pending', department: 'internal', followUp: 'monthly' }
+  }
+];
+// 更新標籤
+const updateBranchTag = (branchId, tagCategory, tagValue) => {
+  setBranches(branches.map(branch => 
+    branch.id === branchId ? { 
+      ...branch, 
+      tags: { ...branch.tags, [tagCategory]: tagValue }
+    } : branch
+  ));
+};
 
 // 從 localStorage 讀取儲存的位置資料
 const loadSavedPositions = () => {
@@ -733,63 +881,153 @@ const getCheckboxStyle = (isSelected, color) => ({
       ...getCardStyle(branch)
     }}
   >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div 
-                    style={{ 
-                      width: '12px', 
-                      height: '12px', 
-                      backgroundColor: branchTypes[branch.type]?.color || '#3b82f6', 
-                      borderRadius: '50%' 
-                    }} 
-                  />
-                  <input
-                    type="text"
-                    value={branch.title}
-                    onChange={(e) => updateBranch(branch.id, 'title', e.target.value)}
-                    style={{
-                      fontWeight: '600',
-                      color: '#1f2937',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      outline: 'none',
-                      padding: '4px',
-                      borderRadius: '4px',
-                      fontSize: '14px',
-                      cursor: 'text',
-                      width: '120px'
-                    }}
-                    onFocus={(e) => e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'}
-                    onBlur={(e) => e.target.style.backgroundColor = 'transparent'}
-                    onMouseDown={(e) => e.stopPropagation()}
-                  />
-                </div>
-                <div style={{ fontSize: '12px', color: '#6b7280', fontWeight: '500' }}>
-                  
-                </div>
-              </div>
-              
-              <textarea
-                value={branch.description}
-                onChange={(e) => updateBranch(branch.id, 'description', e.target.value)}
-                style={{
-                  width: '100%',
-                  height: `${branch.height - 80}px`,
-                  fontSize: '14px',
-                  color: '#6b7280',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  resize: 'none',
-                  padding: '4px',
-                  borderRadius: '4px',
-                  cursor: 'text'
-                }}
-                placeholder="輸入療程內容..."
-                onFocus={(e) => e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'}
-                onBlur={(e) => e.target.style.backgroundColor = 'transparent'}
-                onMouseDown={(e) => e.stopPropagation()}
-              />
+  {/* 卡片標題 */}
+<div style={{ position: 'relative', marginBottom: '12px' }}>
+  {/* 左上角圓點 */}
+  <div 
+    style={{ 
+      position: 'absolute',
+      top: '5px',
+      left: '-8px',
+      width: '11px', 
+      height: '11px', 
+      backgroundColor: (() => {
+        switch(branch.type) {
+          case 'diagnosis': return '#3b82f6'; // 藍色
+          case 'treatment': return '#dc2626'; // 紅色
+          case 'recovery': return '#ea580c';  // 橘色
+          case 'tracking': return '#16a34a';  // 綠色
+          default: return '#3b82f6';
+        }
+      })(),
+      borderRadius: '50%',
+      border: '2px solid white',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      zIndex: 5
+    }} 
+  />
+  
+  {/* 標題輸入框 */}
+  <input
+    type="text"
+    value={branch.title}
+    onChange={(e) => updateBranch(branch.id, 'title', e.target.value)}
+    style={{
+      fontWeight: '600',
+      color: '#1f2937',
+      backgroundColor: 'transparent',
+      border: 'none',
+      outline: 'none',
+      padding: '4px 4px 4px 16px',
+      borderRadius: '4px',
+      fontSize: '14px',
+      cursor: 'text',
+      width: '100%'
+    }}
+    onFocus={(e) => e.target.style.backgroundColor = 'rgba(59, 130, 246, 0.1)'}
+    onBlur={(e) => e.target.style.backgroundColor = 'transparent'}
+    onMouseDown={(e) => e.stopPropagation()}
+  />
+</div>
+
+{/* 醫療標籤區域 */}
+<div style={{ marginBottom: '12px' }}>
+  {/* 緊急程度和狀態標籤 */}
+  <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+    {branch.tags?.urgency && (
+      <select
+        value={branch.tags.urgency}
+        onChange={(e) => updateBranchTag(branch.id, 'urgency', e.target.value)}
+        style={{
+          fontSize: '11px',
+          padding: '2px 6px',
+          borderRadius: '12px',
+          border: 'none',
+          backgroundColor: medicalTags.urgency.options.find(opt => opt.id === branch.tags.urgency)?.bgColor,
+          color: medicalTags.urgency.options.find(opt => opt.id === branch.tags.urgency)?.color,
+          fontWeight: '500',
+          cursor: 'pointer'
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {medicalTags.urgency.options.map(option => (
+          <option key={option.id} value={option.id}>{option.label}</option>
+        ))}
+      </select>
+    )}
+    
+    {branch.tags?.status && (
+      <select
+        value={branch.tags.status}
+        onChange={(e) => updateBranchTag(branch.id, 'status', e.target.value)}
+        style={{
+          fontSize: '11px',
+          padding: '2px 6px',
+          borderRadius: '12px',
+          border: 'none',
+          backgroundColor: medicalTags.status.options.find(opt => opt.id === branch.tags.status)?.bgColor,
+          color: medicalTags.status.options.find(opt => opt.id === branch.tags.status)?.color,
+          fontWeight: '500',
+          cursor: 'pointer'
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {medicalTags.status.options.map(option => (
+          <option key={option.id} value={option.id}>{option.label}</option>
+        ))}
+      </select>
+    )}
+  </div>
+  
+  {/* 科別和追蹤頻率標籤 */}
+  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+    {branch.tags?.department && (
+      <select
+        value={branch.tags.department}
+        onChange={(e) => updateBranchTag(branch.id, 'department', e.target.value)}
+        style={{
+          fontSize: '11px',
+          padding: '2px 6px',
+          borderRadius: '12px',
+          border: 'none',
+          backgroundColor: medicalTags.department.options.find(opt => opt.id === branch.tags.department)?.bgColor,
+          color: medicalTags.department.options.find(opt => opt.id === branch.tags.department)?.color,
+          fontWeight: '500',
+          cursor: 'pointer'
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {medicalTags.department.options.map(option => (
+          <option key={option.id} value={option.id}>{option.label}</option>
+        ))}
+      </select>
+    )}
+    
+    {branch.tags?.followUp && (
+      <select
+        value={branch.tags.followUp}
+        onChange={(e) => updateBranchTag(branch.id, 'followUp', e.target.value)}
+        style={{
+          fontSize: '11px',
+          padding: '2px 6px',
+          borderRadius: '12px',
+          border: 'none',
+          backgroundColor: medicalTags.followUp.options.find(opt => opt.id === branch.tags.followUp)?.bgColor,
+          color: medicalTags.followUp.options.find(opt => opt.id === branch.tags.followUp)?.color,
+          fontWeight: '500',
+          cursor: 'pointer'
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {medicalTags.followUp.options.map(option => (
+          <option key={option.id} value={option.id}>{option.label}</option>
+        ))}
+      </select>
+    )}
+  </div>
+</div>
+
+
             </div>
           ))}
 
